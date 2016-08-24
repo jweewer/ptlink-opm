@@ -1,0 +1,147 @@
+#!/bin/sh
+#
+# Completely re-written by FlashMan <chuegen@quadrunner.com> 981231
+# Wow.  The old version was *very* messy and had boatloads of redundancy.
+# Fixed.
+#
+
+# Path to install-sh
+INSTALL_SH="autoconf/install-sh"
+
+#
+# dir_concat looks to see if we have an absolute or relative path
+# it echos $ETCPATH/<arg> if we have a relative path
+#
+dir_concat() {
+  if [ ! -z "`echo $1 | grep '^/'`" ]; then
+    echo $1;
+  else
+    echo ${ETCPATH}/$1;
+  fi;
+}
+
+#
+# dir_make attempts to make a directory tree using mkdir -p
+# Used to eliminate redundancy
+#
+dir_make() {
+  if [ \( ! -z "$1" \) -a \( ! -d "$1" \) ]; then
+    echo $1 does not exist, creating...
+    mkdir -p $1
+    if [ $? -ne 0 ]; then
+      echo Could not create directory path $1.
+      echo Perhaps you are not allowed to create a directory in the path.
+      echo Please fix and try again.
+      exit -1;
+    fi;
+  fi
+}
+#
+#
+#
+#
+check_install() {
+  if [ ! -f $1 ]; then
+	echo "- installing $2 --> $1"
+	$INSTALL_SH -c $2 $1;
+#  else
+#	echo "- $1 was found"
+  fi
+}
+
+check_install_data() {
+  if [ ! -f $1 ]; then
+	echo "- installing $2 --> $1"
+	$INSTALL_SH -m 660 -c $2 $1;
+#  else
+#	echo "* $1 was found"
+  fi
+}
+
+check_install_data_old() {
+  if [ ! -f $1 ]; then
+	echo "- installing $2 --> $1"
+  else
+	echo "- saving $1.old"
+	mv $1 $1.old
+  fi
+
+  $INSTALL_SH -m 660 -c $2 $1;
+}
+
+is_upgrade=0
+BINPATH=`grep '#define.BINPATH' include/path.h|awk '{print $3}'|tr -d \"`;
+ETCPATH=`grep '#define.ETCPATH' include/path.h|awk '{print $3}'|tr -d \"`;
+VARPATH=`grep '#define.VARPATH' include/path.h|awk '{print $3}'|tr -d \"`;
+
+if [ -f src/ptopm.exe ]; then
+  EXESUFFIX=".exe"
+else
+  EXESUFFIX=""
+fi
+clear
+echo "##########################################################################"
+echo "# PTlink Open Proxy Monitor - Installing ptopm binary and example files  #"
+echo "##########################################################################"
+
+# Let's make sure all PATHes exists
+dir_make ${BINPATH}
+dir_make ${ETCPATH}
+dir_make ${VARPATH}
+dir_make ${VARPATH}/log
+
+echo - chmod 700 ${ETCPATH} ${VARPATH}
+chmod 700 ${ETCPATH} ${VARPATH}
+if [ ! -f src/ptopm${EXESUFFIX} ]; then
+  echo "src/ptopm${EXESUFFIX} was not found!"
+  echo "Please run \"make all\" to build ptopm."
+  exit -1;
+fi
+
+
+
+# try to install the example files if needed
+
+check_install ${BINPATH}/ptopm${EXESUFFIX} src/ptopm${EXESUFFIX}
+check_install_data ${ETCPATH}/ptopm.dconf samples/ptopm.dconf.sample
+check_install_data ${ETCPATH}/scan_rules.dconf samples/scan_rules.dconf
+
+echo "- installing ptopm at ${BINPATH}"
+if [ ! -f ${BINPATH}/ptopm${EXESUFFIX} ]; then
+  $INSTALL_SH -c src/ptopm${EXESUFFIX} ${BINPATH}/ptopm${EXESUFFIX};
+else
+  if [ -f ${ETCPATH}/ptopm.pid ] ; then
+    echo "- checking dconf settings (TODO)"
+#    src/ptopm${EXESUFFIX} -s -c
+    if [ $? -eq 0 ] ; then
+      echo "- killing running ptopm"
+      kill `cat ${ETCPATH}/ptopm.pid`  > /dev/null 2>&1
+      is_upgrade=1
+      echo "- sleep 3 seconds for process to kill"
+      sleep 3
+    else
+      echo "- aborting upgrade, fix your dconf settings first"
+      exit
+    fi
+  fi
+  #echo "- saving existing ptopm as ptopm${EXESUFFIX}.old"
+  #mv ${BINPATH}/ptopm${EXESUFFIX} ${BINPATH}/ptopm${EXESUFFIX}.old
+  $INSTALL_SH -c src/ptopm${EXESUFFIX} ${BINPATH}/ptopm${EXESUFFIX};
+fi
+
+if  [ "${EXESUFFIX}" = "" ]; then
+  VERSION=`grep '#define.PATCHLEVEL' include/version.h|awk '{print $3}'|tr -d \"`;
+  echo "${VERSION}" > ${ETCPATH}/version.info
+  check_install ${BINPATH}/sendbug tools/sendbug
+fi
+# finished.
+if [ $is_upgrade -eq 1 ]; then
+  echo "- running ptopm"
+  ${BINPATH}/ptopm${EXESUFFIX}
+  echo "Upgrade completed!"
+else
+  echo "Install completed!"
+  echo "Please edit the configuration files ${ETCPATH}/*.dconf"
+  echo "Then execute ptopm with ${BINPATH}/ptopm${EXESUFFIX}"
+fi
+

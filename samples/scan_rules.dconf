@@ -1,0 +1,16 @@
+# This files defines the scan rules to be used
+# Scan rule format:
+# ScanRule "Name String:type:port:Scan String:Send String:Reason"
+# Where
+#	Name String - Just a string to be displayed on the stats
+#	type - Scan type: http/socks4/socks5/cisco/wingate
+#	Scan String - String to trigger a positive scan
+#	Send String - To be used for future scan types
+#	Reason - If defined will override default gline reason
+ScanRule "HTTP open proxys at port 8080   :http:8080:*** Looking up::"
+ScanRule "HTTP open proxys at port 3128   :http:3128:*** Looking up::"
+ScanRule "HTTP open proxys at port 80     :http:0080:*** Looking up::"
+ScanRule "Socks4 open proxys at port 1080 :socks4:1080:*** Looking up::"
+ScanRule "Socks5 open proxys at port 1080 :socks5:1080:*** Looking up::"
+ScanRule "Cisco open telnet at port 23    :cisco:23:*** Looking up::"
+ScanRule "Wingate open proxys at port 23  :wingate:23:*** Looking up::"

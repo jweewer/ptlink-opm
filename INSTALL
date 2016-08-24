@@ -1,0 +1,54 @@
+PTlink Open Proxy Monitor
+INSTALL (based on PTlink6 INSTALL)
+---------------------
+This distribution uses gnu autoconf.
+
+0.  Read the CHANGES file to find out about the exciting new features 
+in this version.
+
+1.  Run the configure script.  It will create include/setup.h and the
+Makefiles to match your system:
+	./configure
+As default ptopm will be installed to $HOME/ptopm to specify a different
+  install directory use ./configure --prefix=path/to/install/dir
+
+2.  Edit the the "include/config.h" file. 
+
+3.  "make" should build ptopm.
+
+4.  "make install" to install the server and tools in the path defined
+in config.h.
+Note: ptopm will kill the running ptopm if found
+	  and launch the new one with the existing .dconf files.
+
+5.
+  Edit ptopm.dconf files on your ptopm directory
+  
+HOW TO GET HELP:
+----------------
+ [ http://www.ptlink.net/Coders/ ]
+ 
+1.  Check the file ptopm.log 
+  ( Learn English if don't understand the problem :P )
+
+2. Post your question on PTlink Coders forum on the web page.
+
+3. The Mailing List
+There is a mailing list for general discussion of PTlink IRCd,
+you can subscribe it from http://www.ptlink.net/Coders/
+If ptopm crashes on you, PLEASE use the ./sendbug script.
+The PTlink Coders team can't fix bugs if no one tells us about them!
+
+If there is a new feature you would like to see in the next major
+release of PTlink Open Proxy Monitor, please post it to the public 
+mailing list: ptlinksoft-ircd@lists.sourceforge.net
+
+
+
+SUCCESSFULLY COMPILED ON:
+-------------------------
+FreeBSD 4.2-STABLE (x86)
+Linux2.2.x (x86)
+Linux2.6.x (x86)
+Solaris 8 (sparc)
+

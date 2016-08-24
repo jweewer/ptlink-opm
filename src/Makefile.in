@@ -1,0 +1,95 @@
+#
+# Makefile.in for src/
+#
+CC = @CC@
+RM = @RM@
+MKDEP = ${CC} -MM
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+sysconfdir = @sysconfdir@
+localstatedir = @localstatedir@
+
+PTOPMLIBS = @LIBS@
+
+INCLUDES = -I../include
+CPPFLAGS = ${INCLUDES} @CPPFLAGS@
+ 
+#
+# For developers
+# CFLAGS= -g -Wall 
+#
+
+SRCS = \
+	dconf.c \
+	hash.c \
+	irc_parse.c \
+	irc_string.c \
+	ircdio.c \
+	ptopm.c \
+	rhc.c \
+	s_log.c \
+	sockutil.c \
+	m_error.c \
+	m_kick.c \
+	m_kill.c \
+	m_nick.c \
+	m_ping.c \
+	m_privmsg.c \
+	m_server.c \
+	m_svinfo.c \
+	match.c \
+	misc.c \
+	scan.c \
+	send.c \
+	signals.c \
+	sprintf_irc.c
+
+
+#
+# Do it this way for Ultrix, and its portable at least
+# just make sure OBJ's match SRC's (pointed out by Ian)
+# Ultrix can't use gnu make????? feh --Bleep
+# 
+#OBJS = \
+
+OBJS = ${SRCS:.c=.o}
+
+all: ptopm
+
+build: all
+
+ptopm: ${OBJS}
+	${CC} ${LDFLAGS} -o $@ ${OBJS} ${PTOPMLIBS}
+
+install: build
+	@echo "Please do a make install from the top level directory"
+
+
+# this is really the default rule for c files
+.c.o:
+	${CC} ${CPPFLAGS} ${CFLAGS} -c $<
+
+../include/path.h:
+	@echo "#define BINPATH \"${bindir}\"" > ../include/path.h
+	@echo "#define ETCPATH \"${sysconfdir}\"" >> ../include/path.h
+	@echo "#define VARPATH \"${localstatedir}\"" >> ../include/path.h
+
+.PHONY: depend clean distclean
+
+../include/m_commands.h: ../include/msg.h
+	@./m_commands.sh
+
+depend:
+	${MKDEP} ${CPPFLAGS} ${SRCS} > .depend
+
+clean:
+	${RM} -f *.o *.exe *~ ptopm.core core ptopm
+	@touch ../include/msg.h
+
+distclean: clean
+	${RM} -f Makefile 
+
+include .depend
+

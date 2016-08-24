@@ -1,0 +1,69 @@
+dconf.o: dconf.c ../include/stdinc.h ../include/setup.h \
+  ../include/s_log.h ../include/irc_string.h ../include/dconf.h \
+  ../include/dconf_vars.h
+hash.o: hash.c ../include/stdinc.h ../include/setup.h ../include/config.h \
+  ../include/common.h ../include/s_log.h ../include/send.h \
+  ../include/hash.h ../include/irc_string.h ../include/dconf_vars.h
+irc_parse.o: irc_parse.c ../include/ptopm.h ../include/irc_parse.h \
+  ../include/m_commands.h ../include/common.h ../include/irc_string.h \
+  ../include/ircd.h ../include/s_log.h ../include/send.h \
+  ../include/struct.h ../include/ircd_defs.h ../include/msg.h
+irc_string.o: irc_string.c ../include/irc_string.h ../include/s_log.h
+ircdio.o: ircdio.c ../include/ptopm.h ../include/config.h \
+  ../include/sockutil.h ../include/ircd.h ../include/irc_string.h \
+  ../include/s_log.h ../include/irc_parse.h ../include/send.h \
+  ../include/dconf_vars.h ../include/version.h ../include/ircdio.h
+ptopm.o: ptopm.c ../include/stdinc.h ../include/setup.h \
+  ../include/ptopm.h ../include/path.h ../include/s_log.h \
+  ../include/dconf.h ../include/version.h ../include/irc_parse.h \
+  ../include/ircdio.h ../include/sockutil.h ../include/msg.h \
+  ../include/dconf_vars.h ../include/config.h ../include/misc.h \
+  ../include/send.h ../include/hash.h ../include/scan.h \
+  ../include/signals.h
+rhc.o: rhc.c ../include/config.h ../include/ptopm.h ../include/rhc.h \
+  ../include/send.h ../include/dconf_vars.h
+s_log.o: s_log.c ../include/ptopm.h ../include/s_log.h \
+  ../include/irc_string.h
+sockutil.o: sockutil.c ../include/stdinc.h ../include/setup.h \
+  ../include/config.h ../include/s_log.h ../include/sockutil.h \
+  ../include/dconf_vars.h
+m_error.o: m_error.c ../include/ptopm.h ../include/s_log.h \
+  ../include/m_commands.h
+m_kick.o: m_kick.c ../include/ptopm.h ../include/s_log.h \
+  ../include/irc_string.h ../include/dconf_vars.h ../include/send.h \
+  ../include/m_commands.h
+m_kill.o: m_kill.c ../include/ptopm.h ../include/s_log.h \
+  ../include/irc_string.h ../include/dconf_vars.h ../include/send.h \
+  ../include/ircdio.h ../include/m_commands.h
+m_nick.o: m_nick.c ../include/stdinc.h ../include/setup.h \
+  ../include/ptopm.h ../include/ircd.h ../include/irc_string.h \
+  ../include/send.h ../include/s_log.h ../include/scan.h \
+  ../include/hash.h ../include/ircd_defs.h ../include/dconf_vars.h \
+  ../include/m_commands.h
+m_ping.o: m_ping.c ../include/ptopm.h ../include/ircd.h \
+  ../include/irc_string.h ../include/send.h ../include/s_log.h \
+  ../include/dconf_vars.h ../include/m_commands.h
+m_privmsg.o: m_privmsg.c ../include/stdinc.h ../include/setup.h \
+  ../include/s_log.h ../include/dconf_vars.h ../include/scan.h \
+  ../include/hash.h ../include/rhc.h ../include/send.h \
+  ../include/m_commands.h
+m_server.o: m_server.c ../include/stdinc.h ../include/setup.h \
+  ../include/ptopm.h ../include/ircd.h ../include/irc_string.h \
+  ../include/send.h ../include/ircdio.h ../include/s_log.h \
+  ../include/ircd_defs.h ../include/dconf_vars.h ../include/m_commands.h
+m_svinfo.o: m_svinfo.c ../include/ptopm.h ../include/s_log.h \
+  ../include/m_commands.h
+match.o: match.c ../include/irc_string.h ../include/hash.h
+misc.o: misc.c ../include/stdinc.h ../include/setup.h ../include/config.h \
+  ../include/ptopm.h ../include/dconf_vars.h ../include/s_log.h
+scan.o: scan.c ../include/stdinc.h ../include/setup.h ../include/config.h \
+  ../include/scan.h ../include/s_log.h ../include/dconf_vars.h \
+  ../include/ircdio.h ../include/ptopm.h ../include/send.h \
+  ../include/misc.h ../include/sockutil.h ../include/rhc.h
+send.o: send.c ../include/stdinc.h ../include/setup.h ../include/ptopm.h \
+  ../include/struct.h ../include/send.h ../include/ircd.h \
+  ../include/s_log.h ../include/sockutil.h ../include/ircd_defs.h
+signals.o: signals.c ../include/stdinc.h ../include/setup.h \
+  ../include/s_log.h ../include/send.h ../include/hash.h \
+  ../include/dconf_vars.h
+sprintf_irc.o: sprintf_irc.c ../include/sprintf_irc.h

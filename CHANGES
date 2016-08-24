@@ -1,0 +1,27 @@
+******************************************************************
+*                     http://software.pt-link.net/               *
+******************************************************************
+
+(.1) 25 Oct 2004k
+   What's new ?
+  ---------------------
+  Issue 0000153: command line debug option
+
+  What has been fixed?
+  ---------------------
+  Issue 0000152: Broken ScanRules parsing
+  Issue 0000149: missing value directive on ScanRule
+
+  PTlink.OPM1.3.0 (17 Oct 2004)
+==================================================================
+   What's new ?
+  ---------------------
+  0000138: custom text based scan option 
+  0000129: Bandwidth usage statistics 
+  0000125: Foreground command line option (-n)
+  0000127: Ability to setup port scanning rules on the dconf file
+
+  What has been fixed?
+  ---------------------
+  0000139: TS parameters positon on SVINFO is incorrect
+  0000131: DCONF vars definitions on dconf.c should use newer DCONF macros

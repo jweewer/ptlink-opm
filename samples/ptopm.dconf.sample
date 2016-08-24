@@ -1,0 +1,120 @@
+# *****************************************************************
+# * PTlink OPM - PTlink Coders Team 1999-2002                     *
+# * http://www.ptlink.net/Coders/ - coders@PTlink.net             *
+# * This program is distributed under GNU Public License          *
+# * Please read the file COPYING for copyright information.       *
+# *****************************************************************
+
+# File: sample ptopm.dconf
+# Author: Lamego@PTlink.net
+
+# LocalAddress <IP> [OPTIONAL]
+#   Specifies the local address to bind to before connecting to the
+#   ircd server/scanned proxies.  
+#   If you don't know what this means or don't need to use it, just leave
+#   the directive commented out.
+ 
+#LocalAddress 127.0.0.1
+
+#   Specifies the remote server hostname and port.  The hostname may
+#   either be a standard Internet hostname or dotted-quad numeric
+#   address; the port number must be an integer between 1 and 65535
+#   inclusive. The password must match the N: password for services.
+
+### IRC server connection configuration
+
+  IRCServer 127.0.0.1
+  IRCPort 6667
+  IRCPass xptopass
+
+  # Alternative IRC Server
+  #   Specifies other servers we should try to connect in case the connection to IRCServer fails
+  #   You can specify multiple alternate IRC servers
+  AltIRCServer    "backup.hub.net"
+  AltIRCServer    "third.hub.bck"
+
+  # RetryDelay
+  #
+  # Time between connect retries when connection to the ircd fails.
+
+  RetryDelay  60s
+
+
+### Services server configuration
+  # ServerName <name>  [REQUIRED]
+  #     Specifies the IRC server name which Services should use.  May be
+  #     overridden by the -name command-line option.
+ 
+  ServerName      "PTOPM.PTlink.net"
+
+  # ServerDesc <text>  [REQUIRED]
+  #     Specifies the text which should appear as the server's information in
+  #     /whois and similar queries.  May be overridden by the -desc
+  #     command-line option.
+ 
+  ServerDesc      "PTlink Open Proxy Monitor"
+
+  # PTOPM Service Configuration  
+    PT_Nick    "PTOPM"
+    PT_Mask    "Services@PTlink.net"
+    PT_Info    "PTOPM Service bot"
+
+  # LogChan Channel [REQUIRED]
+  # Services Log's will be dumped to #Channel
+  # Comment it to disable channel logging
+  # WARNING: Please be sure to restrict this Channel access for security sake
+  # NOTE: Do not include  # on the channel name , to avoid
+  # confusion with comment symbol.
+ 
+    LogChan         "Services.log"
+
+### Open Proxy detection configuration */
+
+  # Include scan rules here
+  .include scan_rules.dconf
+
+  # should we send scan users during netjoin with the irc server ?
+  NetJoinScan   NO
+
+  # notice that should be sent to users on connect
+  ScanNotice	"You are beeing scanned for open socks/wingate/proxy from localhost"
+    
+  # IP to be used as target host on socks/proxy redirection
+  # (Put the Internet IP of the server you're connecting to here)
+  DestIP   "127.0.0.1"
+
+  # Port to be used as target port on socks/proxy redirection
+  DestPort 6667
+  
+  # Maximum number of scans we can do simultaneously
+  # This will be the max. number of  FDs allocated 
+  MaxScans 512
+  
+  # Maximum timeout we should wait to get data from the scanning connection
+  ScanTimeOut 10s
+  
+  # Time for gline duration
+  GLineTime	1d
+
+  # GLine reason to be sent on open socks/wingates
+  GLineReason "You are using an insecure proxy please email someuser@some.net for more info"
+
+  # If defined a report will be sent to ReportEmail
+  # every time an open proxy is detected.
+  #ReportEmail "some@somewhere.com"
+
+  # If defined a report will be sent to ReportEmail
+  # every time an open proxy is detected.
+  #ReportEmail "some@somewhere.com"
+
+### DSNBL Configuration
+
+  # Specify the list of dsnblzones to be checked
+  # or comment to disable DNSBL zones check.
+  # If you want a good irc dnsbl try opm.blitzed.org, http://opm.blitzed.org
+  #DNSBLZones	"zone.dnsbl.com,zone2.dnsbl.com"   
+
+  # This is the reason used on the dnsbl match glines
+  # DNSBLZoneMsg "You were found on this dnsbl list, please check url for details"
+  
+# END OF DCONF #

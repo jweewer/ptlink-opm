@@ -1,0 +1,254 @@
+
+AC_INIT(include/dconf.h)
+AC_PREFIX_DEFAULT($HOME/ptopm)
+AC_CONFIG_AUX_DIR(autoconf)
+AC_CONFIG_HEADER(include/setup.h)
+
+SB=`./shtool echo -n -e %B`
+EB=`./shtool echo -n -e %b`
+                                                                                
+AC_DEFUN(BOLD_MESSAGE,[
+              AC_MSG_RESULT()
+              AC_MSG_RESULT(${SB}$1${EB})
+              AC_MSG_RESULT()
+	      ])
+
+
+PACKAGE=ptlink.opm
+VERSION=`grep '#define.program_version' include/version.h|awk '{print $3}'|tr -d \"`
+BOLD_MESSAGE(Configuring ${VERSION} ...)
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+
+dnl Checks for programs.
+AC_PROG_CC
+CFLAGS="$CFLAGS -Wall"
+AC_ISC_POSIX
+AC_CANONICAL_SYSTEM
+AC_PROG_MAKE_SET
+AC_PATH_PROG(RM,rm)
+AC_PATH_PROG(CP,cp)
+AC_PATH_PROG(SENDMAIL, sendmail, /usr/sbin)
+AC_PROG_INSTALL
+
+dnl Checks for libraries.
+dnl Replace `main' with a function in -lnsl:
+AC_CHECK_LIB(nsl, gethostbyname)
+dnl AC_CHECK_FUNC(res_mkquery,, AC_CHECK_LIB(resolv, res_mkquery))
+AC_CHECK_LIB(socket, socket)
+dnl AC_CHECK_FUNC(crypt,, AC_CHECK_LIB(descrypt, crypt,,AC_CHECK_LIB(crypt, crypt,,)))
+AC_CHECK_FUNC(inet_ntoa,, AC_CHECK_LIB(nsl, inet_ntoa,,))
+AC_CHECK_FUNC(inet_aton,, AC_CHECK_LIB(resolv, inet_aton,,))
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(sys/param.h unistd.h errno.h string.h stdlib.h stddef.h getopt.h) 
+
+dnl Check for stdarg.h - if we can't find it, halt configure
+AC_CHECK_HEADER(stdarg.h, , AC_MSG_ERROR(** stdarg.h could not be found - services will not compile without it **))
+
+dnl Checks for library functions.
+AC_PROG_GCC_TRADITIONAL
+
+dnl check for poll() call
+AC_CHECK_FUNC(poll, AC_DEFINE(USE_POLL,,"Use poll()"))
+
+dnl check for setenv() call
+AC_CHECK_FUNC(setenv, AC_DEFINE(USE_SETENV,, "Use setenv()"))
+
+dnl check for chroot() call
+AC_CHECK_FUNC(poll, AC_DEFINE(HAVE_CHROOT,,"Have chroot()"))
+
+dnl check for gethostbyname() 
+AC_CHECK_FUNC(gethostbyname, AC_DEFINE(HAVE_GETHOSTBYNAME,,"Have gethostbyname()"))
+
+dnl taken from ircd's Config script
+AC_MSG_CHECKING(for non-blocking socket implementation)
+AC_TRY_RUN(
+[
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/file.h>
+#include <signal.h>
+alarmed()
+{
+	exit(1);
+}
+int main()
+{
+#if defined(O_NONBLOCK)
+	char b[12], x[32];
+	int f, l = sizeof(x);
+	f = socket(AF_INET, SOCK_DGRAM, 0);
+	if (f >= 0 && !(fcntl(f, F_SETFL, O_NONBLOCK))) {
+		signal(SIGALRM, alarmed);
+		alarm(3);
+		recvfrom(f, b, 12, 0, (struct sockaddr *)x, &l);
+		alarm(0);
+		exit(0);
+	}
+#endif
+	exit(1);
+}
+], AC_DEFINE(NBLOCK_POSIX,,"POSIX") AC_MSG_RESULT( O_NONBLOCK ),, AC_MSG_RESULT( cross compiling ))
+
+AC_TRY_RUN(
+[
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/file.h>
+#include <signal.h>
+alarmed()
+{
+	exit(1);
+}
+int main()
+{
+#if defined( O_NDELAY ) && !defined( NBLOCK_POSIX )
+	char b[12], x[32];
+	int f, l = sizeof(x);
+	f = socket(AF_INET, SOCK_DGRAM, 0);
+	if (f >= 0 && !(fcntl(f, F_SETFL, O_NDELAY))) {
+		signal(SIGALRM, alarmed);
+		alarm(3);
+		recvfrom(f, b, 12, 0, (struct sockaddr *)x, &l);
+		alarm(0);
+		exit(0);
+	}
+#endif
+	exit(1);
+}
+], AC_DEFINE(NBLOCK_BSD,,"BSD") AC_MSG_RESULT( O_NDELAY ),, AC_MSG_RESULT(unable to test))
+
+AC_TRY_RUN(
+[
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/file.h>
+#include <signal.h>
+alarmed()
+{
+	exit(1);
+}
+int main()
+{
+#if !defined(NBLOCK_BSD) && !defined(NBLOCK_POSIX) && defined(FIONBIO)
+	char b[12], x[32];
+	int f, l = sizeof(x);
+	f = socket(AF_INET, SOCK_DGRAM, 0);
+	if (f >= 0 && !(fcntl(f, F_SETFL, FIONBIO))) {
+		signal(SIGALRM, alarmed);
+		alarm(3);
+		recvfrom(f, b, 12, 0, (struct sockaddr *)x, &l);
+		alarm(0);
+		exit(0);
+	}
+#endif /* !NBLOCK_POSIX && !NBLOCK_BSD && FIONBIO */
+	exit(1);
+}
+], AC_DEFINE(NBLOCK_SYSV,,"SYSV") AC_MSG_RESULT(FIONBIO),, AC_MSG_RESULT(unable to test))
+
+dnl taken from ircd's Config script
+AC_MSG_CHECKING(signal implementation)
+AC_TRY_RUN(
+[
+int main()
+{
+#if defined(HAVE_SIGACTION)
+	exit(0);
+#else
+	exit(1);
+#endif
+}
+], AC_DEFINE(POSIX_SIGNALS,,"Posix signals") AC_MSG_RESULT(posix),
+    AC_TRY_RUN(
+[
+#include <signal.h>
+int calls = 0;
+void handler()
+{
+	if (calls) return;
+ 	calls++;
+	kill(getpid(), SIGTERM);
+	sleep(1);
+}
+int main()
+{
+	signal(SIGTERM, handler);
+	kill(getpid(), SIGTERM);
+	exit (0);
+}
+], AC_DEFINE(BSD_RELIABLE_SIGNALS,,"BSD Signals") AC_MSG_RESULT(bsd),
+    AC_DEFINE(SYSV_UNRELIABLE_SIGNALS,," SYSV Signals") AC_MSG_RESULT(sysv), AC_MSG_RESULT(uknown)),
+AC_MSG_RESULT(unknown))
+
+if test "x$SENDMAIL" != "x"; then
+	AC_DEFINE_UNQUOTED(SENDMAILPATH,"${SENDMAIL}","SENDMAIL PATH")
+fi
+
+dnl **
+dnl ** CHROOT support
+dnl **
+                                                                                
+AC_ARG_WITH(chrootdir,
+[  --with-chrootdir=DIR       Specify the chroot directory )],
+        [
+        AC_DEFINE_UNQUOTED(CHROOT_DIR,"$withval", "Chroot dir")
+        chroot_dir="$withval" ]
+        ,)
+
+AC_ARG_WITH(pidfile,
+[  --with-pidfile=filename       Specify the pathname of the pid file )],
+        [
+        AC_DEFINE_UNQUOTED(PIDFILE,"$withval","PIDFILE")
+        pid_file="$withval" ]
+        ,)
+
+
+dnl development options
+AC_ARG_ENABLE(develop,
+[  --enable-develop           Enable development support.
+  --disable-develop          Disable development support. ],
+[
+  case "$enableval" in
+  yes)
+    echo "Enabling development support."
+    CFLAGS="-g -Wunused -Wall -Wshadow -Wmissing-declarations -ansi"
+    ;;
+  no)
+    echo "Disabling development support."
+    CFLAGS="$CFLAGS"
+    ;;
+  esac
+])
+AC_OUTPUT(Makefile src/Makefile)
+
+bpath=`eval echo ${bindir}`
+bpath=`eval echo ${bpath}`
+cpath=`eval echo ${sysconfdir}`
+lpath=`eval echo ${localstatedir}`
+
+echo "
+Configuration:
+
+  PTlink OPM Version:....... ${VERSION}
+  Compiler:................. ${CC}
+  Binary path:.............. ${bpath}
+  Config path:.............. ${cpath}
+  Var path:................. ${lpath}"
+if test x"$chroot_dir" != "x" ; then
+  echo "\
+  ChRoot path............... ${chroot_dir}"
+fi
+if test x"$options" != "x" ; then
+  echo "\
+  Options:.................. ${options}"
+fi
+echo ""
+echo ""

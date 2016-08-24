@@ -1,0 +1,263 @@
+================================================================================
+			PTlink Time Stamp 4 - InterServer IRC Protocol (extension) 
+						  Based on EFnet's hybrid6
+							  
+								Last update
+					  Fri 30 Nov 2001 11:13:05 PM WET
+================================================================================
+
+**** Connection handshaking ****
+1)	connect() at some listening port allowing access for our host
+
+send connection password:
+  PASS %s :TS
+	parv[1] = connection password 
+	(TS indicates this is server uses TS protocol and SVINFO will be sent 
+	for protocol compatibility checking)
+
+send capabilities list:
+  CAPAB :%s
+	parv[1] = capability list 
+
+send ou server identification:
+  SERVER %s 1 %s :%s
+	parv[1] = server name
+	parv[2] = hop count (1 since we are directly connected)
+	parv[3] = server version  
+	parv[4] = server description
+  e.g.	SERVER some.server.net 1 :Server located somewhere
+  --
+  At this time the other server will check for our id/password and if they
+  match on their C/N list will reply act with 1)  procedure
+  --
+
+send SVINFO protocol information
+  SVINFO %d %d
+	parv[0] = server name
+	parv[1] = minimum supported protocol version (3)
+	parv[2] = current supported protocol version (6)
+
+
+send SVSINFO services data information
+  SVSINFO %lu %d
+  	parv[0] = sender (server name)
+	parv[1] = local services data TS
+	parv[1] = max global users
+  --
+  
+  --
+	
+2)  receiving a SERVER message
+	(if received password does not give permission to server name drop the
+	 connection, else ...)
+  introduce servers we know (C1)
+  send our glines (G1)
+  send our sqlines (G9)
+  send our sglines (G13)
+  send our svlines 
+  walk the list of channels, 
+	send all the nicks that haven't been sent yet for each channel (C2)
+	then send the channel itself (C3)
+	send the channel topic (C4)
+  send all clients not sent yet (not found on any channel) with (C2)
+  send PING :our servername to signal netjoin completed
+
+**** Connection establishment ****  
+C1)	introducing server
+  :%s SERVER %s %d %s :%s
+	parv[0] = server from where the server was introduced to us 
+  	parv[1] = server name
+	parv[2] = hop count (1 wen are directly connected)
+	parv[3] = server version
+	parv[4] = server description
+  e.g.:	:uc.ptlink.net SERVER dark.ptlink.net 2 :PTlink IRC NET Server
+
+C2)	introducing client
+  NICK %s %d %lu %s %s %s %s %s :%s
+	parv[1] = nickname
+	parv[2] = hopcount 
+	parv[3] = nick TS (nick introduction time)
+	parv[4] = umodes
+    parv[5] = username
+    parv[6] = hostname
+    parv[7] = spoofed hostname
+    parv[8] = server
+    parv[9] = nick info
+  e.g.:	NICK xpto 2 561264 +rw irc num.myisp.pt mask.myisp.pt uc.ptlink.net :Just me
+	
+C3)	introducing channel
+  :%s SJOIN %lu %s %s %s :%s
+	parv[0] = sender
+	parv[1] = channel TS (channel creation time)
+	parv[2] = channel
+	parv[3] = modes + n arguments (key and/or limit) 
+	... [n]  = if(key and/or limit) mode arguments
+	parv[4+n] = flags+nick list (all in one parameter)
+	NOTE: ignore channel modes if we already have the channel with a greater TS
+  e.g.:	:some.server.net SJOIN 3451234 #Test +ntl 100 :@+nick1 +nick2 nick3
+
+C4) changing topic
+  :%s TOPIC %s %s %lu :%s
+	parv[0] = sender prefix
+	parv[1] = channel
+	parv[2] = topic nick
+    parv[3] = topic time
+    parv[4] = topic text
+
+**** Services support commands ****
+-=  
+  Using TS will enforce services command security by matching nick's TS with 
+  our sent TS, this will ensure we will not apply the command to a new client 
+  using that nick. If command TS does not match client TS the command
+  will be discarded.
+--
+S1) forced nick change
+  :%s SVSNICK %s %s
+	parv[0] = sender (services client)
+	parv[1]	= target client nick
+	parv[2] = new nick
+  e.g.:	:NickServ SVSNICK Smiler 67455223 _Smiler-
+  
+S2) user mode change
+  :%s SVSMODE %s %s :%s
+  	parv[0] = sender (services client)
+	parv[1]	= target client nick
+	parv[2] = mode changes
+	parv[3] = extra parameter ( if news setting mode(+n) )
+  e.g.:	:NickServ SVSMODE Lamego +rn 1991234
+  
+S3) service requested join
+  :%s SVSJOIN %s :%s
+  	parv[0] = sender (services client)
+	parv[1]	= target client nick
+	parv[2] = channels list 
+  e.g.:	:ChanServ SVSJOIN mynick 4163321 #Chan1,#Chan2
+
+S3) service requested part
+  :%s SVSPART %s :%s
+  	parv[0] = sender (services client)
+	parv[1]	= target client nick
+	parv[2] = channels list 
+  e.g.:	:ChanServ SVSPART mynick 4163321 #Chan1,#Chan2
+
+S4) service server administration
+  :%s SVSADMIN %s :%s
+  	parv[0] = sender (services client)
+	parv[1]	= target server
+    parv[2] = operation
+	  operations:
+		noopers - remove existing opers and disable o:lines
+
+**** Users synchronization ****
+U1) nick change
+  :%s NICK %s %lu
+	parv[0] = old nick
+	parv[1] = new nick
+	parv[2] = TS (timestamp from user's server when nick changed was received)
+	
+U2) user mode change
+  :%s MODE %s :%s
+	parv[0] = sender
+	parv[1] = target nick (==sender)
+	parv[2] = mode change string
+	
+U3) user mask change
+  :%s NEWMASK %s
+	parv[0] = sender
+	parv[1] = new mask (if no '@', hostname is assumed)
+	
+**** Misc. messages ****
+G1) Adding a gline
+   :%s GLINE %s %lu %s %s
+	parv[0] = sender (server if on network synchronization)
+	parv[1] = glined usert@host mask
+	parv[2] = gline duration time (seconds)
+	parv[3] = who added the gline 
+	parv[4] = reason
+	
+G2) Removing a gline
+  :%s UNGLINE %s
+	parv[0] = sender (server if on network synchronization)
+	parv[1] = glined usert@host mask or ALL to remove all glines
+
+G3) Adding/Removing a silence
+  :%s SILENCE %s :%s
+	parv[0] = sender
+	parv[1] = acptr (silence source nick)
+	parv[2] = silenced mask (if starting with '-', silence will be removed)
+
+G4) Propagating news
+  :%s NEWS %lu :%s
+	parv[0] = sender
+	parv[1] = news subject (bit mask)
+	parv[2] = news message
+
+G5) Setting zombies
+  :%s ZOMBIE %s :%s
+	parv[0] = sender
+	parv[1] = target nick
+	parv[2] = reason
+
+G6) Clearing zombies
+  :%s UNZOMBIE %s :%s
+	parv[0] = sender
+	parv[1] = target nick
+
+G7) Setting dccdeny
+  :%s DCCDENY %s :%s
+	parv[0] = sender
+	parv[1] = target nick
+	parv[2] = reason
+
+G8) Clearing dccdeny
+  :%s DCCALLOW %s :%s
+	parv[0] = sender
+	parv[1] = target nick
+	
+G9) Propagating a sqline
+   :%s SQLINE %s :%s
+	parv[0] = sender 
+	parv[1] = sqlined nick/mask
+	parv[2] = reason
+	
+G10) Removing a sqline
+  :%s UNSQLINE %s
+	parv[0] = sender 
+	parv[1] = sqlined nick/mask
+
+G11) Propagating a zline
+   :%s ZLINE %s :%s
+	parv[0] = sender 
+	parv[1] = zlined host
+	parv[2] = time
+	parv[3] = reason
+	
+G12) Removing a zline
+  :%s UNZLINE %s
+	parv[0] = sender 
+	parv[1] = zlined host
+
+G13) Propagating a sgline
+   :%s SGLINE :%s:%s
+	parv[0] = sender 
+	parv[1] = info ban mask:reason
+	
+G14) Removing a sgline
+  :%s UNSGLINE %s
+	parv[0] = sender 
+	parv[1] = info ban mask
+
+G15) Propagating a svline
+   :%s SVLINE :%s:reason
+	parv[0] = sender 
+	parv[1] = banned filename pattern:reason
+	
+G16) Removing a svline
+  :%s UNSVLINE %s
+	parv[0] = sender 
+	parv[1] = banned filename pattern
+
+
+================================================================================
+  http://www.ptlink.net/Coders/		- (C) Joao Pinto 2001 - Lamego@PTlink.net
+================================================================================

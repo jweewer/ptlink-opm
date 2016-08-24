@@ -1,0 +1,10 @@
+int	m_dconf(int parc, char *parv[]);
+int m_null(int parc, char *parv[]);
+int m_error(int parc, char *parv[]);
+int m_kick(int parc, char *parv[]);
+int m_kill(int parc, char *parv[]);
+int m_nick(int parc, char *parv[]);
+int m_ping(int parc, char *parv[]);
+int m_privmsg(int parc, char *parv[]);
+int m_server(int parc, char *parv[]);
+int m_svinfo(int parc, char *parv[]);
